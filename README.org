@@ -1,0 +1,18 @@
+* HACS
+*Home assistant Community store* =HACS= can help you discover custom elements.
+To setup =HACS=:
+1. get inside the container running =homeassistant=:
+   *NOTE:* in this case the container is called =homeassistant=
+   #+begin_src bash
+docker exec -it homeassistant sh
+   #+end_src
+2. run =HACS= script while inside the container:
+   #+begin_src bash
+wget -O - http://get.hacs.xyz | bash -
+   #+end_src
+3. restart =docker compose=:
+   #+begin_src bash
+docker compose down && docker compose up -d
+   #+end_src
+
+   [[https://hacs.xyz/docs/use/download/download/#to-download-hacs-container][source: hacs.xyz]]
