@@ -1,0 +1,87 @@
+services:
+  #Alternative certbot
+  # treafik
+  reverse-proxy:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro # Traefik config file
+      - traefik-certs:/certs # Docker volume to store the acme file for the Certifactes
+
+  # HomeAssistant
+  homeassistant:
+    container_name: ha
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - ${HA_CONFIG}:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    depends_on:
+      # MariaDB is optional (only if you would like to use a different database for HA).
+      - mariadb
+    user: "${LOCAL_USER}:${LOCAL_USER}"
+    ports:
+      - "8123:8123"  # "8321:8123" Maps external port 8123 to internal port 8123
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant-http.rule=Host(`example.nl`) || Host(`www.example.nl`)"
+      - "traefik.http.routers.homeassistant-http.entrypoints=homeassistant"
+      - "traefik.http.routers.homeassistant-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.homeassistant-https.rule=Host(`example.nl`) || Host(`example.nl`)"
+      - "traefik.http.routers.app-https.entrypoints=homeassistant"
+      - "traefik.http.routers.homeassistant-https.tls=true"
+      - "traefik.http.routers.homeassistant-https.tls.certresolver=letencrypt"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt
+    restart: unless-stopped
+    volumes:
+      - ${Z2MQTT_DATA}:/app/data
+      - /run/udev:/run/udev:ro
+    ports:
+    # Frontend port
+      - 8081:8080
+    environment:
+      - TZ=Europe/Amsterdam
+    devices:
+    # Make sure this matched your adapter location
+      - ${ZIGBEE_DONGLE}:/dev/ttyACM0
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    volumes:
+      - ${MOSQUITTO}:/mosquitto
+      - ${MOSQUITTO_DATA}:/mosquitto/data
+      - ${MOSQUITTO_LOG}:/mosquitto/log
+    ports:
+      - 1883:1883
+      - 9001:9001
+    user: "${LOCAL_USER}:${LOCAL_USER}"
+  # MariaDb
+  mariadb:
+    image: mariadb:latest
+    container_name: ha_mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: ha_db
+      MYSQL_USER: homeassistant
+      MYSQL_PASSWORD: "${HA_MYSQL_PASSWORD}"
+    user: "${LOCAL_USER}:${LOCAL_USER}"
+    volumes:
+      # Local path where the database will be stored.
+      - ${HA_DB}:/var/lib/mysql
+    ports:
+      - "3306:3306"
+volumes:
+  model-cache:
+  traefik-certs:
+    name: traefik-certs
