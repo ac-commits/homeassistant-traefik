@@ -23,9 +23,21 @@ docker compose up -d
 #+end_src
 
 ** traefik
-Make sure all =entrypoints= are correct.
+Make sure all =entrypoints= are correct in =traefik.yaml.
 Default: =entrypoints=homassistant=.
-* ENV
+
+** Modify configuration.yaml
+If using a proxy like =traefik= Home assistants =configuration.yaml= needs to be configured:
+#+begin_src yaml
+---
+http:
+  server_port: 8123 # Default port
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.xx.x.x # Add IP address of the proxy server or docker container
+
+#+end_src
+** Modify ENV file
 Modify =variables= to your likings!
 
 * HACS
