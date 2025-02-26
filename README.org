@@ -1,10 +1,37 @@
+* Install homeassistant
+** Pre requirements
+- =docker=,
+- =docker compose=.
+
+**  Installation
+Make a folder:
+#+begin_src bash
+mkdir homeassistant
+#+end_src
+Add the =docker-compose.yaml= and =.env= file in the folder.
+run:
+#+begin_src bash
+docker compose up -d
+#+end_src
+
+** git
+
+#+begin_src bash
+git clone https://github.com/ac-commits/homeassistant-traefik.git homeassistant
+cd homeassistant
+docker compose up -d
+#+end_src
+
+* ENV
+Modify =variables= to your likings!
+
 * HACS
 *Home assistant Community store* =HACS= can help you discover custom elements.
 To setup =HACS=:
 1. get inside the container running =homeassistant=:
-   *NOTE:* in this case the container is called =homeassistant=
+   *NOTE:* in this case the container is called =ha=
    #+begin_src bash
-docker exec -it homeassistant sh
+docker exec -it ha sh
    #+end_src
 2. run =HACS= script while inside the container:
    #+begin_src bash
