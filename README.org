@@ -22,6 +22,9 @@ cd homeassistant
 docker compose up -d
 #+end_src
 
+** traefik
+Make sure all =entrypoints= are correct.
+Default: =entrypoints=homassistant=.
 * ENV
 Modify =variables= to your likings!
 
