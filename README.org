@@ -36,7 +36,9 @@ http:
   trusted_proxies:
     - 172.xx.x.x # Add IP address of the proxy server or docker container
 #+end_src
+
 [[https://www.home-assistant.io/integrations/http/][source: Home Assistant Http integration]]
+
 ** Modify ENV file
 Modify =variables= to your likings!
 
