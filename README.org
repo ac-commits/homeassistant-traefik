@@ -11,7 +11,7 @@ mkdir homeassistant
 Add the =docker-compose.yaml= and =.env= file in the folder.
 run:
 #+begin_src bash
-docker compose up -d
+docker compose up -d homeassistant
 #+end_src
 
 ** git
@@ -19,7 +19,7 @@ docker compose up -d
 #+begin_src bash
 git clone https://github.com/ac-commits/homeassistant-traefik.git homeassistant
 cd homeassistant
-docker compose up -d
+docker compose up -d homeassistant
 #+end_src
 
 ** traefik
@@ -60,3 +60,17 @@ docker compose down && docker compose up -d
    #+end_src
 
    [[https://hacs.xyz/docs/use/download/download/#to-download-hacs-container][source: hacs.xyz]]
+
+* Update homeassistant
+1. Pull latest images:
+#+begin_src bash
+docker compose pull homeassistant
+#+end_src
+2. Restart containers:
+   #+begin_src bash
+docker compose up -d homeassistant --remove-orphans
+   #+end_src
+3. Optionally, remove obsolete images:
+   #+begin_src bash
+docker image prune
+   #+end_src

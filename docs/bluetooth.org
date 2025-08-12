@@ -1,0 +1,109 @@
+#+title: Bluetooth
+
+* Tl:dr
+Use the Raspberry Pi's built-in Bluetooth in a =Home Assistant= Docker container.
+Without extra configuration in the =docker-compose.yaml= file , the container can't access the Pi's Bluetooth device or the host's Bluetooth manager.
+
+*  Setup
+
+** Check Your Bluetooth Device
+Outside of Docker, run:
+#+begin_src bash
+hciconfig -a
+#+end_src
+If you see:
+#+begin_example
+hci0:   Type: Primary  Bus: UART
+#+end_example
+then your Bluetooth device is at =/dev/hci0=.
+If you have multiple adapters, you may also see =hci1=, =hci2=, etc.
+** Easy Approach
+Modify =docker-compose.yaml with *(Full Access)*
+Works in almost all cases — simplest for beginners.
+#+begin_src yaml
+
+services:
+---
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    network_mode: host
+    privileged: true
+    devices:
+      - /dev/hci0:/dev/hci0 #bluetooth
+    volumes:
+      - /path/to/config:/config
+      - /run/dbus:/run/dbus
+    restart: unless-stopped
+#+end_src
+
+** Secure Approach
+Same result, but without full privileged mode and minimal permissions.
+#+begin_src yaml
+services:
+---
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/hci0:/dev/hci0
+    volumes:
+      - /path/to/config:/config
+      - /run/dbus:/run/dbus
+    restart: unless-stopped
+#+end_src
+
+* How It Works
+#+begin_example
+   ┌─────────────────────────┐
+   │ Raspberry Pi OS (Host)  │
+   │                         │
+   │  ┌───────────────┐      │
+   │  │ bluetoothd    │◄──┐  │
+   │  └───────────────┘   │  │
+   │        ▲             │  │
+   │   D-Bus│             │  │
+   │        │    ┌──────┐ │  │
+   │   ┌────┴──┐ │hci0  │ │  │
+   │   │  BT   │ │Chip  │ │  │
+   │   └───────┘ └──────┘ │  │
+   └─────────▲────────────┘  │
+             │               │
+   ┌─────────┴───────────────┐
+   │ Home Assistant (Docker) │
+   │                         │
+   │   bluetoothctl          │
+   └─────────────────────────┘
+#+end_example
+- =/dev/hci0= → the Pi's built-in Bluetooth chip
+- =bluetoothd= → the host's Bluetooth manager
+- D-Bus → the “communication channel” between the two
+
+* Check Your Bluetooth Device
+Outside of Docker, run:
+#+begin_src bash
+hciconfig -a
+#+end_src
+If you see:
+#+begin_example
+hci0:   Type: Primary  Bus: UART
+#+end_example
+then your Bluetooth device is at =/dev/hci0=.
+If you have multiple adapters, you may also see =hci1=, =hci2=, etc.
+
+
+* Test it
+After (re)starting =Home Assistant=, run:
+#+begin_src bash
+docker exec -it homeassistant bluetoothctl show
+#+end_src
+If the Bluetooth controller details appear, the setup is working.
+
+* Notes
+- Replace =/path/to/config= with your Home Assistant configuration directory.
+- The device name =hci0= may differ if multiple adapters are present.
+- For most users, the easy approach is fine; security-conscious setups can use the secure approach.
