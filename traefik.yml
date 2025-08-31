@@ -9,6 +9,12 @@ entryPoints:
     address: ":443"
   homeassistant:
     address: ":8123" # default port
+  huha:
+    address: ":1313" # default port
+  fautau:
+    address: ":2283" # default port
+  mealish:
+    address: ":9925" # or 9000
 serversTransport:
   insecureSkipVerify: true
 providers:
@@ -19,7 +25,7 @@ providers:
 certificatesResolvers:
   letencrypt:
     acme:
-      email: example@proton.me 
+      email: cromalex@proton.me 
       storage: /certs/acme.json
       caServer: https://acme-v02.api.letsencrypt.org/directory # prod (default)
       #caServer: https://acme-staging-v02.api.letsencrypt.org/directory # staging
